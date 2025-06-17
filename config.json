@@ -1,0 +1,15 @@
+{
+  "name": "Subscriptions",
+  "short_description": "Create and manage Bitcoin payment subscription plans",
+  "tile": "/subscriptions/static/image/subscriptions.png",
+  "contributors": [
+    "LNBits Team"
+  ],
+  "hidden": false,
+  "migration_module": "subscriptions.migrations",
+  "db_name": "ext_subscriptions",
+  "min_node_version": "0.10.0",
+  "warning": "This extension is in beta. Use with caution.",
+  "disabled": false,
+  "dependencies": []
+} 

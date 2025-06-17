@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% block page %}
+<div class="row q-col-gutter-md">
+  <div class="col-12 col-md-8 col-lg-7 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <div class="row items-center no-wrap q-mb-md">
+          <div class="col">
+            <h5 class="q-my-none">Subscription Plans</h5>
+          </div>
+          <div class="col-auto">
+            <q-btn
+              unelevated
+              color="primary"
+              size="md"
+              label="Create Plan"
+              icon="add"
+              @click="showPlanDialog = true"
+            />
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <q-card>
+      <q-card-section v-if="plans.loading">
+        <q-skeleton height="50px" class="q-mb-md" v-for="n in 3" :key="n" />
+      </q-card-section>
+      <q-card-section v-else-if="plans.data.length === 0">
+        <div class="text-center q-pa-lg">
+          <q-icon name="subscriptions" size="4rem" color="grey-5" />
+          <div class="text-h6 q-mt-md text-grey-8">No subscription plans yet</div>
+          <div class="text-subtitle1 text-grey-6 q-mb-md">Create your first subscription plan to get started</div>
+          <q-btn
+            unelevated
+            color="primary"
+            label="Create Plan"
+            icon="add"
+            @click="showPlanDialog = true"
+          />
+        </div>
+      </q-card-section>
+      <q-list v-else separator>
+        <q-item v-for="plan in plans.data" :key="plan.id" class="q-pa-md">
+          <q-item-section>
+            <q-item-label class="text-h6">{{ plan.name }}</q-item-label>
+            <q-item-label caption v-if="plan.description">{{ plan.description }}</q-item-label>
+            <div class="row q-gutter-md q-mt-sm">
+              <div class="col-auto">
+                <q-chip dense color="primary" text-color="white" icon="payments">
+                  {{ formatSats(plan.amount) }} / {{ plan.interval }}
+                </q-chip>
+              </div>
+              <div class="col-auto" v-if="plan.trial_days > 0">
+                <q-chip dense color="orange" text-color="white" icon="free_breakfast">
+                  {{ plan.trial_days }} day trial
+                </q-chip>
+              </div>
+              <div class="col-auto">
+                <q-chip dense color="green" text-color="white" icon="people">
+                  {{ plan.active_subscriptions }} active
+                </q-chip>
+              </div>
+              <div class="col-auto" v-if="plan.max_subscriptions">
+                <q-chip dense color="grey" text-color="white" icon="limit">
+                  Max: {{ plan.max_subscriptions }}
+                </q-chip>
+              </div>
+            </div>
+          </q-item-section>
+          <q-item-section side>
+            <div class="row q-gutter-sm">
+              <q-btn
+                flat
+                dense
+                icon="share"
+                color="primary"
+                @click="copySubscriptionLink(plan.id)"
+              >
+                <q-tooltip>Copy subscription link</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                icon="edit"
+                color="grey-8"
+                @click="editPlan(plan)"
+              >
+                <q-tooltip>Edit plan</q-tooltip>
+              </q-btn>
+              <q-btn
+                flat
+                dense
+                icon="delete"
+                color="red"
+                @click="deletePlan(plan)"
+              >
+                <q-tooltip>Delete plan</q-tooltip>
+              </q-btn>
+            </div>
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-card>
+  </div>
+
+  <div class="col-12 col-md-4 col-lg-5 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <h6 class="q-mt-none q-mb-md">Plan Configuration Tips</h6>
+        <q-list>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="lightbulb" color="yellow-8" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Pricing Strategy</q-item-label>
+              <q-item-label caption>Consider offering monthly and yearly options with discounts for longer commitments</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="access_time" color="blue" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Trial Periods</q-item-label>
+              <q-item-label caption>Free trials can increase conversion rates by 20-30%</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="trending_up" color="green" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Scaling</q-item-label>
+              <q-item-label caption>Set subscription limits to manage growth and resources</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card-section>
+    </q-card>
+  </div>
+</div>
+
+<!-- Plan Dialog -->
+<q-dialog v-model="showPlanDialog" persistent>
+  <q-card style="min-width: 400px">
+    <q-card-section>
+      <div class="text-h6">{{ planForm.id ? 'Edit Plan' : 'Create Plan' }}</div>
+    </q-card-section>
+
+    <q-card-section>
+      <div class="q-gutter-md">
+        <q-input
+          v-model="planForm.name"
+          filled
+          label="Plan Name *"
+          hint="e.g., Premium Monthly, Basic Plan"
+          :rules="[val => !!val || 'Name is required']"
+        />
+        
+        <q-input
+          v-model="planForm.description"
+          filled
+          type="textarea"
+          label="Description"
+          hint="Describe what's included in this plan"
+          rows="3"
+        />
+        
+        <q-input
+          v-model.number="planForm.amount"
+          filled
+          type="number"
+          label="Amount (satoshis) *"
+          hint="Price per billing cycle"
+          :rules="[val => val > 0 || 'Amount must be greater than 0']"
+        />
+        
+        <q-select
+          v-model="planForm.interval"
+          filled
+          label="Billing Interval *"
+          :options="intervalOptions"
+          emit-value
+          map-options
+        />
+        
+        <q-input
+          v-model.number="planForm.trial_days"
+          filled
+          type="number"
+          label="Trial Days"
+          hint="Number of free trial days (0 for no trial)"
+          min="0"
+        />
+        
+        <q-input
+          v-model.number="planForm.max_subscriptions"
+          filled
+          type="number"
+          label="Max Subscriptions"
+          hint="Maximum number of active subscriptions (leave empty for unlimited)"
+          min="1"
+        />
+        
+        <q-input
+          v-model="planForm.webhook_url"
+          filled
+          type="url"
+          label="Webhook URL"
+          hint="URL to receive subscription events (optional)"
+        />
+        
+        <q-input
+          v-model="planForm.success_message"
+          filled
+          label="Success Message"
+          hint="Message shown after successful subscription"
+        />
+        
+        <q-input
+          v-model="planForm.success_url"
+          filled
+          type="url"
+          label="Success URL"
+          hint="Redirect URL after successful subscription"
+        />
+      </div>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="Cancel" @click="closePlanDialog" />
+      <q-btn 
+        unelevated 
+        color="primary" 
+        label="Save" 
+        @click="savePlan"
+        :loading="saving"
+      />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  new Vue({
+    el: '#vue',
+    mixins: [windowMixin],
+    data() {
+      return {
+        plans: {
+          loading: true,
+          data: []
+        },
+        showPlanDialog: false,
+        saving: false,
+        planForm: {
+          id: null,
+          name: '',
+          description: '',
+          amount: null,
+          interval: 'monthly',
+          trial_days: 0,
+          max_subscriptions: null,
+          webhook_url: '',
+          success_message: '',
+          success_url: ''
+        },
+        intervalOptions: [
+          { label: 'Daily', value: 'daily' },
+          { label: 'Weekly', value: 'weekly' },
+          { label: 'Monthly', value: 'monthly' },
+          { label: 'Yearly', value: 'yearly' }
+        ]
+      }
+    },
+    methods: {
+      formatSats(amount) {
+        return amount ? `${amount.toLocaleString()} sats` : '0 sats'
+      },
+      async getPlans() {
+        try {
+          this.plans.loading = true
+          const { data } = await LNbits.api.request('GET', '/subscriptions/api/v1/plans', this.g.user.wallets[0].adminkey)
+          this.plans.data = data
+        } catch (error) {
+          console.error('Error fetching plans:', error)
+          this.$q.notify({
+            type: 'negative',
+            message: 'Failed to fetch subscription plans'
+          })
+        } finally {
+          this.plans.loading = false
+        }
+      },
+      resetPlanForm() {
+        this.planForm = {
+          id: null,
+          name: '',
+          description: '',
+          amount: null,
+          interval: 'monthly',
+          trial_days: 0,
+          max_subscriptions: null,
+          webhook_url: '',
+          success_message: '',
+          success_url: ''
+        }
+      },
+      editPlan(plan) {
+        this.planForm = { ...plan }
+        this.showPlanDialog = true
+      },
+      closePlanDialog() {
+        this.showPlanDialog = false
+        this.resetPlanForm()
+      },
+      async savePlan() {
+        try {
+          this.saving = true
+          
+          if (!this.planForm.name || !this.planForm.amount || this.planForm.amount <= 0) {
+            this.$q.notify({
+              type: 'negative',
+              message: 'Please fill in all required fields'
+            })
+            return
+          }
+          
+          const method = this.planForm.id ? 'PUT' : 'POST'
+          const url = this.planForm.id 
+            ? `/subscriptions/api/v1/plans/${this.planForm.id}`
+            : '/subscriptions/api/v1/plans'
+          
+          await LNbits.api.request(method, url, this.g.user.wallets[0].adminkey, this.planForm)
+          
+          this.$q.notify({
+            type: 'positive',
+            message: `Plan ${this.planForm.id ? 'updated' : 'created'} successfully`
+          })
+          
+          this.closePlanDialog()
+          await this.getPlans()
+        } catch (error) {
+          console.error('Error saving plan:', error)
+          this.$q.notify({
+            type: 'negative',
+            message: `Failed to ${this.planForm.id ? 'update' : 'create'} plan`
+          })
+        } finally {
+          this.saving = false
+        }
+      },
+      async deletePlan(plan) {
+        this.$q.dialog({
+          title: 'Delete Plan',
+          message: `Are you sure you want to delete "${plan.name}"?`,
+          cancel: true,
+          persistent: true
+        }).onOk(async () => {
+          try {
+            await LNbits.api.request('DELETE', `/subscriptions/api/v1/plans/${plan.id}`, this.g.user.wallets[0].adminkey)
+            this.$q.notify({
+              type: 'positive',
+              message: 'Plan deleted successfully'
+            })
+            await this.getPlans()
+          } catch (error) {
+            console.error('Error deleting plan:', error)
+            this.$q.notify({
+              type: 'negative',
+              message: 'Failed to delete plan'
+            })
+          }
+        })
+      },
+      copySubscriptionLink(planId) {
+        const link = `${window.location.origin}/subscriptions/subscribe/${planId}`
+        navigator.clipboard.writeText(link).then(() => {
+          this.$q.notify({
+            type: 'positive',
+            message: 'Subscription link copied to clipboard!'
+          })
+        })
+      }
+    },
+    async created() {
+      await this.getPlans()
+    }
+  })
+</script>
+{% endblock %} 

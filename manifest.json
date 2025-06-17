@@ -1,0 +1,38 @@
+{
+  "featured": false,
+  "tile": "/subscriptions/static/image/subscriptions.png",
+  "tags": [
+    "subscriptions",
+    "payments",
+    "recurring",
+    "billing",
+    "saas"
+  ],
+  "repo": "https://github.com/Thalerisdead/LNBitsSubscriptions",
+  "organisationUrl": "https://github.com/Thalerisdead",
+  "extensions": [
+    {
+      "id": "subscriptions",
+      "name": "Subscriptions",
+      "shortDescription": "Create and manage Bitcoin payment subscription plans",
+      "icon": "subscriptions",
+      "contributors": [
+        {
+          "name": "Thalerisdead",
+          "github": "https://github.com/Thalerisdead"
+        }
+      ],
+      "hidden": false,
+      "migration_module": "subscriptions.migrations",
+      "db_name": "ext_subscriptions",
+      "min_node_version": "0.10.0",
+      "warning": "This extension is in beta. Use with caution in production.",
+      "disabled": false,
+      "dependencies": [],
+      "archive": {
+        "hash": "tbd",
+        "url": "https://github.com/Thalerisdead/LNBitsSubscriptions/archive/refs/tags/v1.0.0.zip"
+      }
+    }
+  ]
+} 

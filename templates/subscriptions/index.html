@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+
+{% block page %}
+<div class="row q-col-gutter-md">
+  <div class="col-12 col-md-8 col-lg-7 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <div class="row items-center no-wrap q-mb-md">
+          <div class="col">
+            <h5 class="q-my-none">Subscriptions Dashboard</h5>
+          </div>
+          <div class="col-auto">
+            <q-btn
+              flat
+              color="grey"
+              @click="$q.dialog({title: 'Subscriptions Extension', message: 'Create and manage Bitcoin payment subscription plans for your products and services.'})"
+            >
+              <q-icon name="help_outline" />
+            </q-btn>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <q-card>
+      <q-card-section>
+        <div class="row items-center no-wrap q-mb-md">
+          <div class="col">
+            <h6 class="q-my-none">Quick Actions</h6>
+          </div>
+        </div>
+        <div class="row q-gutter-md">
+          <q-btn
+            unelevated
+            color="primary"
+            size="md"
+            label="Create Plan"
+            icon="add"
+            @click="$router.push('/subscriptions/plans')"
+          />
+          <q-btn
+            unelevated
+            color="secondary"
+            size="md"
+            label="View Subscriptions"
+            icon="list"
+            @click="$router.push('/subscriptions/subscriptions')"
+          />
+        </div>
+      </q-card-section>
+    </q-card>
+
+    <q-card>
+      <q-card-section>
+        <div class="row items-center no-wrap q-mb-md">
+          <div class="col">
+            <h6 class="q-my-none">Recent Activity</h6>
+          </div>
+        </div>
+        <div v-if="stats.loading" class="row q-gutter-md">
+          <q-skeleton height="60px" class="col-12" />
+        </div>
+        <div v-else class="row q-gutter-md">
+          <div class="col-12 col-sm-6 col-md-4">
+            <q-card flat bordered>
+              <q-card-section class="text-center">
+                <div class="text-h4 text-primary">{{ stats.data.totalPlans || 0 }}</div>
+                <div class="text-subtitle2">Subscription Plans</div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <q-card flat bordered>
+              <q-card-section class="text-center">
+                <div class="text-h4 text-positive">{{ stats.data.activeSubscriptions || 0 }}</div>
+                <div class="text-subtitle2">Active Subscriptions</div>
+              </q-card-section>
+            </q-card>
+          </div>
+          <div class="col-12 col-sm-6 col-md-4">
+            <q-card flat bordered>
+              <q-card-section class="text-center">
+                <div class="text-h4 text-accent">{{ formatSats(stats.data.monthlyRevenue || 0) }}</div>
+                <div class="text-subtitle2">Monthly Revenue</div>
+              </q-card-section>
+            </q-card>
+          </div>
+        </div>
+      </q-card-section>
+    </q-card>
+  </div>
+
+  <div class="col-12 col-md-4 col-lg-5 q-gutter-y-md">
+    <q-card>
+      <q-card-section>
+        <h6 class="q-mt-none q-mb-md">Getting Started</h6>
+        <q-list>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="looks_one" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Create your first subscription plan</q-item-label>
+              <q-item-label caption>Define pricing, intervals, and trial periods</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="looks_two" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Share subscription links</q-item-label>
+              <q-item-label caption>Send public subscription URLs to customers</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="looks_3" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Manage subscriptions</q-item-label>
+              <q-item-label caption>Track payments and customer status</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card-section>
+    </q-card>
+
+    <q-card>
+      <q-card-section>
+        <h6 class="q-mt-none q-mb-md">Features</h6>
+        <q-list>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="schedule" color="green" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Flexible Intervals</q-item-label>
+              <q-item-label caption>Daily, weekly, monthly, or yearly billing</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="free_breakfast" color="orange" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Trial Periods</q-item-label>
+              <q-item-label caption>Offer free trials to attract customers</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="webhook" color="blue" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Webhooks</q-item-label>
+              <q-item-label caption>Get notified of subscription events</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item>
+            <q-item-section side>
+              <q-icon name="cancel" color="red" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label>Easy Cancellation</q-item-label>
+              <q-item-label caption>Cancel immediately or at period end</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card-section>
+    </q-card>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+  const { ref, onMounted } = Vue
+
+  const mapSubscriptions = (obj) => {
+    obj.displayUrl = ['/subscriptions/', obj.id].join('')
+    return obj
+  }
+
+  new Vue({
+    el: '#vue',
+    mixins: [windowMixin],
+    data() {
+      return {
+        stats: {
+          loading: true,
+          data: {}
+        }
+      }
+    },
+    methods: {
+      formatSats(amount) {
+        return amount ? `${amount.toLocaleString()} sats` : '0 sats'
+      },
+      async getStats() {
+        try {
+          this.stats.loading = true
+          const { data: plans } = await LNbits.api.request('GET', '/subscriptions/api/v1/plans', this.g.user.wallets[0].adminkey)
+          const { data: subscriptions } = await LNbits.api.request('GET', '/subscriptions/api/v1/subscriptions', this.g.user.wallets[0].adminkey)
+          
+          const activeSubscriptions = subscriptions.filter(s => ['active', 'trialing'].includes(s.status))
+          const monthlyRevenue = plans.reduce((total, plan) => {
+            const planActiveSubscriptions = subscriptions.filter(s => s.plan_id === plan.id && ['active', 'trialing'].includes(s.status))
+            let monthlyAmount = 0
+            
+            if (plan.interval === 'monthly') {
+              monthlyAmount = plan.amount * planActiveSubscriptions.length
+            } else if (plan.interval === 'yearly') {
+              monthlyAmount = (plan.amount / 12) * planActiveSubscriptions.length
+            } else if (plan.interval === 'weekly') {
+              monthlyAmount = (plan.amount * 4.33) * planActiveSubscriptions.length
+            } else if (plan.interval === 'daily') {
+              monthlyAmount = (plan.amount * 30) * planActiveSubscriptions.length
+            }
+            
+            return total + monthlyAmount
+          }, 0)
+          
+          this.stats.data = {
+            totalPlans: plans.length,
+            activeSubscriptions: activeSubscriptions.length,
+            monthlyRevenue: Math.round(monthlyRevenue)
+          }
+        } catch (error) {
+          console.error('Error fetching stats:', error)
+          this.stats.data = {
+            totalPlans: 0,
+            activeSubscriptions: 0,
+            monthlyRevenue: 0
+          }
+        } finally {
+          this.stats.loading = false
+        }
+      }
+    },
+    async created() {
+      await this.getStats()
+    }
+  })
+</script>
+{% endblock %} 

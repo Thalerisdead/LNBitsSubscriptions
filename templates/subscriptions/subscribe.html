@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscribe to {{ plan.name }} - LNbits</title>
+    <link href="https://cdn.jsdelivr.net/npm/quasar@2.0.0/dist/quasar.prod.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900|Material+Icons" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .subscription-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-top: 40px;
+        }
+        .plan-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .plan-header {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            padding: 32px;
+            text-align: center;
+        }
+        .plan-name {
+            font-size: 2rem;
+            font-weight: 300;
+            margin: 0 0 8px 0;
+        }
+        .plan-price {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin: 16px 0;
+        }
+        .plan-interval {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        .trial-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 16px;
+            font-size: 0.9rem;
+        }
+        .plan-body {
+            padding: 32px;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 32px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 1.1rem;
+        }
+        .feature-icon {
+            color: #4CAF50;
+            margin-right: 12px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .subscribe-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .subscribe-btn:hover {
+            transform: translateY(-2px);
+        }
+        .subscribe-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .payment-section {
+            display: none;
+            text-align: center;
+            padding: 32px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .qr-code {
+            margin: 20px 0;
+        }
+        .payment-amount {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 16px;
+        }
+        .success-section {
+            display: none;
+            text-align: center;
+            padding: 32px;
+            color: #4CAF50;
+        }
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="subscription-container">
+        <div class="plan-card">
+            <div class="plan-header">
+                <h1 class="plan-name">{{ plan.name }}</h1>
+                <div class="plan-price">{{ format_sats(plan.amount) }}</div>
+                <div class="plan-interval">per {{ plan.interval }}</div>
+                {% if plan.trial_days > 0 %}
+                <div class="trial-badge">
+                    🎉 {{ plan.trial_days }} day free trial
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="plan-body">
+                {% if plan.description %}
+                <p style="font-size: 1.1rem; color: #666; line-height: 1.6; margin-bottom: 24px;">
+                    {{ plan.description }}
+                </p>
+                {% endif %}
+                
+                <ul class="feature-list">
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Bitcoin Lightning payments</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Automatic recurring billing</span>
+                    </li>
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>Cancel anytime</span>
+                    </li>
+                    {% if plan.trial_days > 0 %}
+                    <li class="feature-item">
+                        <span class="feature-icon">✓</span>
+                        <span>{{ plan.trial_days }} day free trial</span>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <!-- Subscription Form -->
+                <div id="subscription-form">
+                    <div class="form-group">
+                        <label class="form-label">Email Address (Optional)</label>
+                        <input 
+                            type="email" 
+                            id="subscriber-email" 
+                            class="form-input"
+                            placeholder="your@email.com"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Full Name (Optional)</label>
+                        <input 
+                            type="text" 
+                            id="subscriber-name" 
+                            class="form-input"
+                            placeholder="Your Name"
+                        >
+                    </div>
+                    
+                    <button id="subscribe-btn" class="subscribe-btn" onclick="subscribe()">
+                        Subscribe Now
+                    </button>
+                </div>
+
+                <!-- Payment Section -->
+                <div id="payment-section" class="payment-section">
+                    <div class="payment-amount" id="payment-amount"></div>
+                    <div>Scan QR code or copy invoice to pay</div>
+                    <div class="qr-code" id="qr-code"></div>
+                    <div style="word-break: break-all; font-family: monospace; background: #f5f5f5; padding: 16px; border-radius: 8px; margin: 16px 0;">
+                        <span id="payment-request"></span>
+                    </div>
+                    <button onclick="copyInvoice()" style="background: #f5f5f5; border: 1px solid #ddd; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                        Copy Invoice
+                    </button>
+                    <div style="margin-top: 24px; color: #666;">
+                        <div id="loading-spinner" class="loading-spinner"></div>
+                        Waiting for payment...
+                    </div>
+                </div>
+
+                <!-- Success Section -->
+                <div id="success-section" class="success-section">
+                    <div class="success-icon">🎉</div>
+                    <h2>Subscription Activated!</h2>
+                    <p id="success-message">Thank you for subscribing! Your subscription is now active.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        const planId = '{{ plan.id }}';
+        let subscriptionData = null;
+        let paymentHash = null;
+        let checkInterval = null;
+
+        function formatSats(amount) {
+            return amount ? `${amount.toLocaleString()} sats` : '0 sats';
+        }
+
+        async function subscribe() {
+            const subscribeBtn = document.getElementById('subscribe-btn');
+            const email = document.getElementById('subscriber-email').value;
+            const name = document.getElementById('subscriber-name').value;
+            
+            subscribeBtn.disabled = true;
+            subscribeBtn.innerHTML = '<div class="loading-spinner"></div>Creating subscription...';
+            
+            try {
+                const response = await fetch(`/subscriptions/api/v1/public/subscribe/${planId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        plan_id: planId,
+                        subscriber_email: email || null,
+                        subscriber_name: name || null
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to create subscription');
+                }
+                
+                const data = await response.json();
+                subscriptionData = data;
+                
+                if (data.payment_request) {
+                    // Show payment section
+                    paymentHash = data.payment_hash;
+                    showPaymentSection(data.payment_request, {{ plan.amount | tojson }});
+                    startPaymentCheck();
+                } else {
+                    // Trial period activated
+                    showSuccess(data.message || 'Trial period activated!');
+                }
+                
+            } catch (error) {
+                console.error('Error creating subscription:', error);
+                alert('Failed to create subscription. Please try again.');
+                subscribeBtn.disabled = false;
+                subscribeBtn.innerHTML = 'Subscribe Now';
+            }
+        }
+
+        function showPaymentSection(paymentRequest, amount) {
+            document.getElementById('subscription-form').style.display = 'none';
+            document.getElementById('payment-section').style.display = 'block';
+            document.getElementById('payment-amount').textContent = formatSats(amount);
+            document.getElementById('payment-request').textContent = paymentRequest;
+            
+            // Generate QR code
+            QRCode.toCanvas(document.createElement('canvas'), paymentRequest, {
+                width: 256,
+                margin: 2,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function (error, canvas) {
+                if (error) {
+                    console.error('QR code error:', error);
+                    return;
+                }
+                document.getElementById('qr-code').appendChild(canvas);
+            });
+        }
+
+        function showSuccess(message) {
+            document.getElementById('subscription-form').style.display = 'none';
+            document.getElementById('payment-section').style.display = 'none';
+            document.getElementById('success-section').style.display = 'block';
+            
+            if (message) {
+                document.getElementById('success-message').textContent = message;
+            }
+            
+            if (checkInterval) {
+                clearInterval(checkInterval);
+            }
+            
+            // Redirect if success URL is provided
+            {% if plan.success_url %}
+            setTimeout(() => {
+                const successUrl = {{ plan.success_url | tojson }};
+                if (successUrl && successUrl.startsWith('http')) {
+                    window.location.href = successUrl;
+                }
+            }, 3000);
+            {% endif %}
+        }
+
+        function copyInvoice() {
+            const paymentRequest = document.getElementById('payment-request').textContent;
+            navigator.clipboard.writeText(paymentRequest).then(() => {
+                alert('Invoice copied to clipboard!');
+            });
+        }
+
+        function startPaymentCheck() {
+            checkInterval = setInterval(async () => {
+                try {
+                    // Check if payment is completed (this would need to be implemented in the API)
+                    const response = await fetch(`/subscriptions/api/v1/public/payment-status/${paymentHash}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.paid) {
+                            const successMessage = {{ plan.success_message | tojson }};
+                            showSuccess(successMessage || 'Payment successful! Your subscription is now active.');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking payment status:', error);
+                }
+            }, 2000);
+        }
+
+        // Cleanup interval on page unload
+        window.addEventListener('beforeunload', () => {
+            if (checkInterval) {
+                clearInterval(checkInterval);
+            }
+        });
+    </script>
+</body>
+</html> 
